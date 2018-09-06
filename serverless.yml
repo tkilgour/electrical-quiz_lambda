@@ -1,0 +1,63 @@
+service: electrical-quiz-lambda # only alphanumeric chars and hyphens allowed
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  memorySize: 128 # set the max memory of the Lambdas in MB
+  timeout: 10 # the timeout is 10 seconds (default is 6)
+  stage: dev # setting the env stage to dev, this will be visible in the routes
+  region: us-east-1
+
+functions:
+  create:
+    handler: handler.create # point to exported create function in handler.js
+    events:
+      - http:
+          path: notes # path will be domain.name.com/dev/notes
+          method: post
+          cors: true
+  getOne:
+    handler: handler.getOne
+    events:
+      - http:
+          path: notes/{id} # path will be domain.name.com/dev/notes/1
+          method: get
+          cors: true
+  getAll:
+    handler: handler.getAll # path will be domain.name.com/dev/notes
+    events:
+     - http:
+          path: notes
+          method: get
+          cors: true
+  update:
+    handler: handler.update # path will be domain.name.com/dev/notes/1
+    events:
+     - http:
+          path: notes/{id}
+          method: put
+          cors: true
+  delete:
+    handler: handler.delete
+    events:
+     - http:
+          path: notes/{id} # path will be domain.name.com/dev/notes/1
+          method: delete
+          cors: true
+  getAllQuestions:
+    handler: handler.getAllQuestions
+    events:
+      - http:
+          path: questions
+          method: get
+          cors: true
+  getQuiz:
+    handler: handler.getQuiz
+    events:
+      - http:
+          path: quiz
+          method: get
+          cors: true
+plugins:
+- serverless-offline # adding the plugin to be able to run the offline emulation
+

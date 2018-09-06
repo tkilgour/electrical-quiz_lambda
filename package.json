@@ -1,0 +1,19 @@
+{
+  "name": "electrical-quiz_lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-offline": "^3.25.11"
+  },
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "mongoose": "^5.2.13"
+  }
+}
