@@ -127,11 +127,16 @@ module.exports.getQuiz = (event, context, callback) => {
               const option = randomSubset[i].answers[j];
               randomSubset[i].answers[j] = { id: option.id, answer: option.answer };
             }
+            
             // shuffle the answer order
             shuffle(randomSubset[i].answers);
           }
           callback(null, {
             statusCode: 200,
+            headers: {
+              "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+              "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+            },
             body: JSON.stringify(randomSubset)
           })
         })
@@ -140,5 +145,52 @@ module.exports.getQuiz = (event, context, callback) => {
           headers: { 'Content-Type': 'text/plain' },
           body: 'Could not fetch the questions.'
         }))
+    });
+};
+
+module.exports.checkQuiz = (event, context, callback) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+
+  connectToDatabase()
+    .then(() => {
+      Question.find()
+        .then(questions => {
+          const answerFeedback = [];
+          const selectedQuestions = JSON.parse(event.body);
+          const quizQuestions = questions.filter(obj => {
+            return obj._id in selectedQuestions;
+          })
+
+          for (let questionID in selectedQuestions) {
+            const userAnswer = selectedQuestions[questionID];
+            // answerFeedback.push(userAnswer)
+            
+            quizQuestions.forEach(question => {
+              if (question._id == questionID) {
+                let answerObj = {};
+        
+                answerObj._id = question._id;
+                answerObj.correct = question.answers[userAnswer].correct;
+                answerObj.comment = question.answers[userAnswer].comment;
+        
+                answerFeedback.push(answerObj);
+              }
+            });
+          }
+          
+          callback(null, {
+            statusCode: 200,
+            headers: {
+              "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+              "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+            },
+            body: JSON.stringify(answerFeedback)
+          })
+        })
+        .catch(err => callback(null, {
+          statusCode: err.statusCode || 500,
+          headers: { 'Content-Type': 'text/plain' },
+          body: 'Could not check quiz.'
+        }));
     });
 };

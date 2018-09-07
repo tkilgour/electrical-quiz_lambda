@@ -4,7 +4,9 @@ const QuestionSchema = new mongoose.Schema({
 	answers: [
 		{
 			id: Number,
-      answer: String
+			answer: String,
+			correct: Boolean,
+			comment: String
 		}
 	],
 	tags: [String]
