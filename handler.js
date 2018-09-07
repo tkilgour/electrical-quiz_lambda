@@ -4,92 +4,91 @@ const connectToDatabase = require('./db');
 const Note = require('./models/Note');
 const Question = require('./models/Question');
 
-module.exports.create = (event, context, callback) => {
+
+// helper functions
+const shuffle = (a) => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const getRandomSubset = (subsetNum, items) => {
+  if (!items) return;
+  const newItems = shuffle(items);
+  return newItems.slice(0, subsetNum);
+}
+
+// exported functions
+module.exports.createQuestion = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   connectToDatabase()
     .then(() => {
-      Note.create(JSON.parse(event.body))
-        .then(note => callback(null, {
+      Question.create(JSON.parse(event.body))
+        .then(question => callback(null, {
           statusCode: 200,
-          body: JSON.stringify(note)
+          body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
           statusCode: err.statusCode || 500,
           headers: { 'Content-Type': 'text/plain' },
-          body: 'Could not create the note.'
+          body: 'Could not create the question.'
         }));
     });
 };
 
-module.exports.getOne = (event, context, callback) => {
+module.exports.getOneQuestion = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   connectToDatabase()
     .then(() => {
-      Note.findById(event.pathParameters.id)
-        .then(note => callback(null, {
+      Question.findById(event.pathParameters.id)
+        .then(question => callback(null, {
           statusCode: 200,
-          body: JSON.stringify(note)
+          body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
           statusCode: err.statusCode || 500,
           headers: { 'Content-Type': 'text/plain' },
-          body: 'Could not fetch the note.'
+          body: 'Could not fetch the question.'
         }));
     });
 };
 
-module.exports.getAll = (event, context, callback) => {
+module.exports.updateQuestion = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   connectToDatabase()
     .then(() => {
-      Note.find()
-        .then(notes => callback(null, {
+      Question.findByIdAndUpdate(event.pathParameters.id, JSON.parse(event.body), { new: true })
+        .then(question => callback(null, {
           statusCode: 200,
-          body: JSON.stringify(notes)
+          body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
           statusCode: err.statusCode || 500,
           headers: { 'Content-Type': 'text/plain' },
-          body: 'Could not fetch the notes.'
-        }))
-    });
-};
-
-module.exports.update = (event, context, callback) => {
-  context.callbackWaitsForEmptyEventLoop = false;
-
-  connectToDatabase()
-    .then(() => {
-      Note.findByIdAndUpdate(event.pathParameters.id, JSON.parse(event.body), { new: true })
-        .then(note => callback(null, {
-          statusCode: 200,
-          body: JSON.stringify(note)
-        }))
-        .catch(err => callback(null, {
-          statusCode: err.statusCode || 500,
-          headers: { 'Content-Type': 'text/plain' },
-          body: 'Could not fetch the notes.'
+          body: 'Could not fetch the questions.'
         }));
     });
 };
 
-module.exports.delete = (event, context, callback) => {
+module.exports.deleteQuestion = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   connectToDatabase()
     .then(() => {
-      Note.findByIdAndRemove(event.pathParameters.id)
-        .then(note => callback(null, {
+      Question.findByIdAndRemove(event.pathParameters.id)
+        .then(question => callback(null, {
           statusCode: 200,
-          body: JSON.stringify({ message: 'Removed note with id: ' + note._id, note: note })
+          body: JSON.stringify({ message: 'Removed question with id: ' + question._id, question: question })
         }))
         .catch(err => callback(null, {
           statusCode: err.statusCode || 500,
           headers: { 'Content-Type': 'text/plain' },
-          body: 'Could not fetch the notes.'
+          body: 'Could not fetch the questions.'
         }));
     });
 };
@@ -120,11 +119,20 @@ module.exports.getQuiz = (event, context, callback) => {
     .then(() => {
       Question.find()
         .then(questions => {
-          const questionsSubset = questions.slice(0, 5);
-          
+          const randomSubset = getRandomSubset(20, questions);
+          // loop through questions subset…
+          for (let i in randomSubset) {
+            // remove correct and comments…
+            for (let j in randomSubset[i].answers) {
+              const option = randomSubset[i].answers[j];
+              randomSubset[i].answers[j] = { id: option.id, answer: option.answer };
+            }
+            // shuffle the answer order
+            shuffle(randomSubset[i].answers);
+          }
           callback(null, {
             statusCode: 200,
-            body: JSON.stringify(questionsSubset)
+            body: JSON.stringify(randomSubset)
           })
         })
         .catch(err => callback(null, {

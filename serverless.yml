@@ -9,39 +9,32 @@ provider:
   region: us-east-1
 
 functions:
-  create:
-    handler: handler.create # point to exported create function in handler.js
+  createQuestion:
+    handler: handler.createQuestion # point to exported create function in handler.js
     events:
       - http:
-          path: notes # path will be domain.name.com/dev/notes
+          path: questions
           method: post
           cors: true
-  getOne:
-    handler: handler.getOne
+  getOneQuestion:
+    handler: handler.getOneQuestion
     events:
       - http:
-          path: notes/{id} # path will be domain.name.com/dev/notes/1
+          path: questions/{id}
           method: get
           cors: true
-  getAll:
-    handler: handler.getAll # path will be domain.name.com/dev/notes
+  updateQuestion:
+    handler: handler.updateQuestion
     events:
      - http:
-          path: notes
-          method: get
-          cors: true
-  update:
-    handler: handler.update # path will be domain.name.com/dev/notes/1
-    events:
-     - http:
-          path: notes/{id}
+          path: questions/{id}
           method: put
           cors: true
-  delete:
-    handler: handler.delete
+  deleteQuestion:
+    handler: handler.deleteQuestion
     events:
      - http:
-          path: notes/{id} # path will be domain.name.com/dev/notes/1
+          path: questions/{id}
           method: delete
           cors: true
   getAllQuestions:
