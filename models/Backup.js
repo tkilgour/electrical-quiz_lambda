@@ -13,7 +13,8 @@ const BackupSchema = new mongoose.Schema({
 					comment: String
 				}
 			],
-			tags: [String]
+			tags: [String],
+			date_created: Date
 		}
 	]
 });
