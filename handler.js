@@ -125,6 +125,7 @@ module.exports.getAllQuestions = (event, context, callback) => {
   connectToDatabase()
     .then(() => {
       Question.find()
+        .sort('-date_created')
         .then(questions => callback(null, {
           statusCode: 200,
           headers: {
