@@ -2,6 +2,7 @@
 require('dotenv').config({ path: './variables.env' });
 const connectToDatabase = require('./db');
 const Question = require('./models/Question');
+const Backup = require('./models/Backup');
 
 
 // helper functions
@@ -19,15 +20,27 @@ const getRandomSubset = (subsetNum, items) => {
   return newItems.slice(0, subsetNum);
 }
 
+const backupDB = () => {
+  Question.find()
+    .then(questions => {
+      Backup.create({questions: questions});
+    })
+};
+
 // exported functions
 module.exports.createQuestion = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   connectToDatabase()
     .then(() => {
+      backupDB();
       Question.create(JSON.parse(event.body))
         .then(question => callback(null, {
           statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+            "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+          },
           body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
@@ -46,6 +59,10 @@ module.exports.getOneQuestion = (event, context, callback) => {
       Question.findById(event.pathParameters.id)
         .then(question => callback(null, {
           statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+            "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+          },
           body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
@@ -61,9 +78,14 @@ module.exports.updateQuestion = (event, context, callback) => {
 
   connectToDatabase()
     .then(() => {
+      backupDB();
       Question.findByIdAndUpdate(event.pathParameters.id, JSON.parse(event.body), { new: true })
         .then(question => callback(null, {
           statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+            "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+          },
           body: JSON.stringify(question)
         }))
         .catch(err => callback(null, {
@@ -79,9 +101,14 @@ module.exports.deleteQuestion = (event, context, callback) => {
 
   connectToDatabase()
     .then(() => {
+      backupDB();
       Question.findByIdAndRemove(event.pathParameters.id)
         .then(question => callback(null, {
           statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+            "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+          },
           body: JSON.stringify({ message: 'Removed question with id: ' + question._id, question: question })
         }))
         .catch(err => callback(null, {
