@@ -203,7 +203,7 @@ module.exports.checkQuiz = (event, context, callback) => {
                 let answerObj = {};
         
                 answerObj._id = question._id;
-                answerObj.correct = question.answers[userAnswer].correct;
+                answerObj.correct = question.answers[userAnswer].id === question.correct;
                 answerObj.comment = question.answers[userAnswer].comment;
         
                 answerFeedback.push(answerObj);
